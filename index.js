@@ -21,10 +21,13 @@ class DicomDimseServices {
       this.addService(cEcho);
 
       cEcho.doEcho([0, (result) => {
-        this.release();
-
-        let dcmInfo = DicomDimseServices.parseDicomTags(result.elementPairs);
-        callback(null, result.getStatus() == C.STATUS_SUCCESS, dcmInfo);
+          if (result.error != null && result.error.code != null) {
+              callback(result.error, false);
+          } else {
+              this.release();
+              let dcmInfo = DicomDimseServices.parseDicomTags(result.elementPairs);
+              callback(null, result.getStatus() == C.STATUS_SUCCESS, dcmInfo);
+          }
       }]);
     });
 
@@ -69,6 +72,57 @@ class DicomDimseServices {
       callback(null, false, err);
     });
   }
+
+
+    doStore(config, data, callback) {
+
+        if (!config.qrLevel) {
+            return callback(new Error('Invalid Argument: Query Level'));
+        }
+
+        if (!config.hostAE) {
+            return callback(new Error('Invalid AE-Title'));
+        }
+
+        const client = new Connection(this.HOST, this.PORT, {
+            hostAE: config.hostAE,
+            sourceAE: config.sourceAE || 'DICOMDIMSE'
+        });
+
+        client.connect(function () {
+            const
+                cStore = new Services.CStore(null, C.SOP_MR_IMAGE_STORAGE),
+                cFind = new Services.CFind(),
+                cGet = new Services.CGet();
+            cGet.setStoreService(cStore);
+
+            this.addService(cFind);
+            this.addService(cGet);
+            this.addService(cStore);
+
+            let studyIds = [];
+
+            cFind.retrieveStudies({}, [function (result) {
+                //console.log(result.toString());
+                studyIds.push(result.getValue(0x0020000D));
+            }, function () {
+                let instances = [];
+                cFind.retrieveInstances({0x0020000D: studyIds[0]}, [function (result) {
+                    instances.push(result.getValue(0x00080018));
+                }, function () {
+                    cGet.retrieveInstance(instances[0], {}, [function (result) {
+                        //console.log("c-get-rsp received");
+                    }, function (cmd) {
+                        this.release();
+                    }, function (instance) {
+                        console.log(instance.toString());
+
+                        return C.STATUS_SUCCESS;
+                    }]);
+                }]);
+            }]);
+        });
+    }
 
   static parseDicomTags(elementPairs) {
     let dcmRecord = {};

@@ -59,6 +59,12 @@ class Connection extends require("net").Socket {
     this.on('message', function(pdvs) {
       this.receivedMessage(pdvs);
     });
+    this.on('rejected', function(pdu) {
+      this.end();
+      if (this.associateRequest != null) {
+        this.associateRequest.callback(pdu);
+      }
+    });
 
   //this.pause();
   }
@@ -85,7 +91,7 @@ class Connection extends require("net").Socket {
   }
 
   ready() {
-    console.log("Connection established");
+    //console.log("Connection established");
     this.connected = true;
     this.started = time();
 
@@ -197,6 +203,9 @@ class Connection extends require("net").Socket {
         this.emit('aborted');
       } else if (pdu.is(C.ITEM_TYPE_PDU_PDATA)) {
         pdatas.push(pdu);
+      } else if (pdu.is(C.ITEM_TYPE_PDU_ASSOCIATE_REJECT)) {
+        this.associated = false;
+        this.emit('rejected', pdu);
       }
     }
 
@@ -239,12 +248,12 @@ class Connection extends require("net").Socket {
 
   closed(had_error) {
     this.connected = false;
-    console.log("Connection closed", had_error);
+    //console.log("Connection closed", had_error);
   //this.destroy();
   }
 
   error(err) {
-    console.log("Error: ", err);
+    //console.log("Error: ", err);
   }
 
   connect(callback) {
@@ -505,6 +514,11 @@ class Connection extends require("net").Socket {
     userInfo.setUserDataItems([maxLengthItem, classUIDItem, versionItem]);
 
     associateRQ.setUserInformationItem(userInfo);
+
+    this.associateRequest = {
+      associateRQ,
+      callback
+    }
 
     this.send(associateRQ);
   }

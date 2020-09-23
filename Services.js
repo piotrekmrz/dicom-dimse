@@ -1,4 +1,4 @@
-const { PDataTF, PresentationDataValueItem } = require('./PDU');
+const { PDataTF, PresentationDataValueItem, PDU } = require('./PDU');
 const M = require('./Message');
 const C = require('./constants');
 
@@ -47,7 +47,15 @@ class DimseService {
   send(message, params, callback) {
     let o = this;
     this.associate(function (ac) {
-      o.sendMessage(message, params, callback);
+      if (ac instanceof PDU && ac.is(C.ITEM_TYPE_PDU_ASSOCIATE_REJECT)) {
+        callback[1]({
+          error: {
+            code: 'association-rejected',
+            response: ac
+          }});
+      } else {
+        o.sendMessage(message, params, callback);
+      }
       //this.close();
     });
   }

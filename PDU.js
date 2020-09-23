@@ -124,6 +124,9 @@ function pduByStream(stream) {
     case 0x02:
       pdu = new AssociateAC();
       break;
+    case 0x03:
+      pdu = new AssociateReject();
+      break;
     case 0x04:
       pdu = new PDataTF();
       break;
@@ -246,6 +249,23 @@ class AssociateAC extends AssociateRQ {
 
     let userItem = this.load(stream);
     this.setUserInformationItem(userItem);
+  }
+}
+
+class AssociateReject extends PDU {
+  constructor() {
+    super();
+    this.type = C.ITEM_TYPE_PDU_ASSOCIATE_REJECT;
+    this.result = 1;
+    this.source = 3;
+    this.reason = 0;
+  }
+
+  readBytes(stream, length) {
+    stream.increment(1);
+    this.result = stream.read(C.TYPE_UINT8);
+    this.source = stream.read(C.TYPE_UINT8);
+    this.reason = stream.read(C.TYPE_UINT8);
   }
 }
 

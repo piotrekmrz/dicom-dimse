@@ -1,6 +1,6 @@
 {
   "name": "dicom-dimse",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "DICOM DIMSE(part 104) implementation in NodeJS",
   "main": "index.js",
   "directories": {
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rameshrr/dicom-dimse.git"
+    "url": "git+https://github.com/piotrekmrz/dicom-dimse.git"
   },
   "keywords": [
     "DICOM",
@@ -28,7 +28,7 @@
   "author": "OHIF, RAMESH R",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/rameshrr/dicom-dimse/issues"
+    "url": "https://github.com/piotrekmrz/dicom-dimse/issues"
   },
-  "homepage": "https://github.com/rameshrr/dicom-dimse#readme"
+  "homepage": "https://github.com/piotrekmrz/dicom-dimse#readme"
 }
